@@ -2,56 +2,83 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>マイクラ単位変換</title>
+  <title>マイクラ単位変換ツール</title>
   <style>
-    body { font-family: sans-serif; padding: 1em; }
-    input { padding: 0.5em; font-size: 1em; width: 100px; }
+    body {
+      font-family: sans-serif;
+      margin: 2em;
+      background: #f0f8ff;
+    }
+    label {
+      display: block;
+      margin: 1em 0 0.3em;
+    }
+    input {
+      width: 200px;
+      padding: 0.5em;
+    }
+    .result {
+      margin-top: 1.5em;
+      background: #fff;
+      padding: 1em;
+      border: 1px solid #ccc;
+      max-width: 400px;
+    }
   </style>
 </head>
 <body>
   <h1>マイクラ単位変換ツール</h1>
-  <p>アイテム個数を入力してください：</p>
-  <input type="number" id="itemCount" value="2500" />
-  <div id="results"></div>
+
+  <label for="chest">ラージチェスト</label>
+  <input type="number" id="chest" placeholder="例: 1">
+
+  <label for="shulker">シュルカーボックス</label>
+  <input type="number" id="shulker" placeholder="例: 2">
+
+  <label for="stack">スタック</label>
+  <input type="number" id="stack" placeholder="例: 10">
+
+  <label for="item">個数</label>
+  <input type="number" id="item" placeholder="例: 500">
+
+  <div class="result" id="output"></div>
 
   <script>
-    const input = document.getElementById('itemCount');
-    const results = document.getElementById('results');
+    const inputs = document.querySelectorAll("input");
+    const output = document.getElementById("output");
 
-    input.addEventListener('input', () => {
-      const count = parseInt(input.value, 10);
-      if (isNaN(count) || count < 0) {
-        results.innerHTML = '<p>有効な数値を入力してください。</p>';
-        return;
-      }
+    function calculate() {
+      let totalItems = 0;
 
-      const stackSize = 64;
-      const shulkerStacks = 27;
-      const invSlots = 36;
-      const chestSlots = 27;
-      const largeChestSlots = 54;
+      const chest = Number(document.getElementById("chest").value);
+      const shulker = Number(document.getElementById("shulker").value);
+      const stack = Number(document.getElementById("stack").value);
+      const item = Number(document.getElementById("item").value);
 
-      const stacks = Math.floor(count / stackSize);
-      const leftover = count % stackSize;
+      if (!isNaN(chest)) totalItems += chest * 3456;
+      if (!isNaN(shulker)) totalItems += shulker * 1728;
+      if (!isNaN(stack)) totalItems += stack * 64;
+      if (!isNaN(item)) totalItems += item;
 
-      const shulkers = Math.floor(stacks / shulkerStacks);
-      const stacksInShulker = stacks % shulkerStacks;
+      const chestOut = Math.floor(totalItems / 3456);
+      const shulkerOut = Math.floor((totalItems % 3456) / 1728);
+      const stackOut = Math.floor((totalItems % 1728) / 64);
+      const itemOut = totalItems % 64;
 
-      const invs = Math.floor(stacks / invSlots);
-      const stacksInInv = stacks % invSlots;
-
-      const largeChests = Math.floor(stacks / largeChestSlots);
-      const stacksInLargeChest = stacks % largeChestSlots;
-
-      results.innerHTML = `
-        <p>▶ スタック換算：${stacks} スタック + ${leftover} 個</p>
-        <p>▶ シュルカーボックス換算：${shulkers} シュルカー + ${stacksInShulker} スタック + ${leftover} 個</p>
-        <p>▶ ラージチェスト換算：${largeChests} ラージチェスト + ${stacksInLargeChest} スタック + ${leftover} 個</p>
-        <p>▶ インベントリ換算：${invs} インベントリ + ${stacksInInv} スタック + ${leftover} 個</p>
+      output.innerHTML = `
+        <strong>換算結果：</strong><br>
+        🔹 ラージチェスト: ${chestOut} 個<br>
+        🔹 シュルカーボックス: ${shulkerOut} 個<br>
+        🔹 スタック: ${stackOut} スタック<br>
+        🔹 残りアイテム: ${itemOut} 個<br>
+        <br>
+        （合計: ${totalItems} 個）
       `;
-    });
+    }
 
-    input.dispatchEvent(new Event('input'));
+    inputs.forEach(input => {
+      input.addEventListener("input", calculate);
+    });
   </script>
 </body>
 </html>
