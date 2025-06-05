@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>マイクラ単位変換ツール</title>
   <style>
     * {
@@ -33,7 +33,7 @@
       margin-top: 1em;
       font-weight: bold;
     }
-    input[type="number"] {
+    input[type="number"], select {
       width: 100%;
       padding: 0.5em;
       font-size: 1em;
@@ -48,7 +48,10 @@
       border: 1px solid #ccc;
       border-radius: 5px;
     }
-
+    .toggle-stack {
+      margin-top: 1em;
+      text-align: center;
+    }
     @media (max-width: 500px) {
       body {
         padding: 0.5em;
@@ -63,26 +66,41 @@
   <div class="container">
     <h1>マイクラ単位変換ツール</h1>
 
+    <div class="toggle-stack">
+      <label>
+        スタック最大数:
+        <select id="stackSizeSelect">
+          <option value="64">64（通常）</option>
+          <option value="16">16（バケツ・看板など）</option>
+        </select>
+      </label>
+    </div>
+
     <label for="chest">ラージチェスト</label>
-    <input type="number" id="chest" placeholder="例: 1">
+    <input type="number" id="chest" placeholder="例: 1" />
 
     <label for="shulker">シュルカーボックス</label>
-    <input type="number" id="shulker" placeholder="例: 2">
+    <input type="number" id="shulker" placeholder="例: 2" />
 
     <label for="stack">スタック</label>
-    <input type="number" id="stack" placeholder="例: 10">
+    <input type="number" id="stack" placeholder="例: 10" />
 
     <label for="item">個数</label>
-    <input type="number" id="item" placeholder="例: 500">
+    <input type="number" id="item" placeholder="例: 500" />
 
     <div class="result" id="output">入力すると結果が表示されます。</div>
   </div>
 
   <script>
-    const inputs = document.querySelectorAll("input");
+    const inputs = document.querySelectorAll("input, select");
     const output = document.getElementById("output");
+    const stackSizeSelect = document.getElementById("stackSizeSelect");
 
     function calculate() {
+      const stackSize = parseInt(stackSizeSelect.value, 10);
+      const chestCap = 27 * stackSize;
+      const shulkerCap = 27 * stackSize;
+
       let totalItems = 0;
 
       const chest = Number(document.getElementById("chest").value);
@@ -90,21 +108,21 @@
       const stack = Number(document.getElementById("stack").value);
       const item = Number(document.getElementById("item").value);
 
-      if (!isNaN(chest)) totalItems += chest * 3456;
-      if (!isNaN(shulker)) totalItems += shulker * 1728;
-      if (!isNaN(stack)) totalItems += stack * 64;
+      if (!isNaN(chest)) totalItems += chest * chestCap;
+      if (!isNaN(shulker)) totalItems += shulker * shulkerCap;
+      if (!isNaN(stack)) totalItems += stack * stackSize;
       if (!isNaN(item)) totalItems += item;
 
-      const chestOut = Math.floor(totalItems / 3456);
-      const shulkerOut = Math.floor((totalItems % 3456) / 1728);
-      const stackOut = Math.floor((totalItems % 1728) / 64);
-      const itemOut = totalItems % 64;
+      const chestOut = Math.floor(totalItems / chestCap);
+      const shulkerOut = Math.floor((totalItems % chestCap) / shulkerCap);
+      const stackOut = Math.floor((totalItems % shulkerCap) / stackSize);
+      const itemOut = totalItems % stackSize;
 
       output.innerHTML = `
-        <strong>換算結果：</strong><br>
-        🔹 ラージチェスト: ${chestOut} 個<br>
-        🔹 シュルカーボックス: ${shulkerOut} 個<br>
-        🔹 スタック: ${stackOut} スタック<br>
+        <strong>換算結果（スタック上限: ${stackSize}）:</strong><br>
+        🧱 ラージチェスト: ${chestOut} 個<br>
+        📦 シュルカーボックス: ${shulkerOut} 個<br>
+        📚 スタック: ${stackOut} スタック<br>
         🔹 残りアイテム: ${itemOut} 個<br>
         <br>
         （合計: ${totalItems} 個）
@@ -117,3 +135,4 @@
   </script>
 </body>
 </html>
+
