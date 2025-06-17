@@ -5,9 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>マイクラ単位変換ツール</title>
   <style>
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
     body {
       font-family: 'Segoe UI', sans-serif;
       margin: 0;
@@ -53,12 +51,8 @@
       text-align: center;
     }
     @media (max-width: 500px) {
-      body {
-        padding: 0.5em;
-      }
-      .container {
-        padding: 1em 0.8em;
-      }
+      body { padding: 0.5em; }
+      .container { padding: 1em 0.8em; }
     }
   </style>
 </head>
@@ -66,72 +60,119 @@
   <div class="container">
     <h1>マイクラ単位変換ツール</h1>
 
-    <div class="toggle-stack">
-      <label>
-        スタック最大数:
-        <select id="stackSizeSelect">
-          <option value="64">64（通常）</option>
-          <option value="16">16（バケツ・看板など）</option>
-        </select>
-      </label>
+    <label>換算タイプ:</label>
+    <select id="conversionType">
+      <option value="item">スタック・チェスト換算</option>
+      <option value="block">ブロック⇔インゴット換算</option>
+    </select>
+
+    <div id="itemConversion">
+      <div class="toggle-stack">
+        <label>
+          スタック最大数:
+          <select id="stackSizeSelect">
+            <option value="64">64（通常）</option>
+            <option value="16">16（バケツ・看板など）</option>
+          </select>
+        </label>
+      </div>
+
+      <label for="chest">ラージチェスト</label>
+      <input type="number" id="chest" placeholder="例: 1" />
+
+      <label for="shulker">シュルカーボックス</label>
+      <input type="number" id="shulker" placeholder="例: 2" />
+
+      <label for="stack">スタック</label>
+      <input type="number" id="stack" placeholder="例: 10" />
+
+      <label for="item">個数</label>
+      <input type="number" id="item" placeholder="例: 500" />
     </div>
 
-    <label for="chest">ラージチェスト</label>
-    <input type="number" id="chest" placeholder="例: 1" />
+    <div id="blockConversion" style="display:none;">
+      <label for="ingotInput">インゴット</label>
+      <input type="number" id="ingotInput" placeholder="例: 20" />
 
-    <label for="shulker">シュルカーボックス</label>
-    <input type="number" id="shulker" placeholder="例: 2" />
-
-    <label for="stack">スタック</label>
-    <input type="number" id="stack" placeholder="例: 10" />
-
-    <label for="item">個数</label>
-    <input type="number" id="item" placeholder="例: 500" />
+      <label for="blockInput">ブロック</label>
+      <input type="number" id="blockInput" placeholder="例: 2" />
+    </div>
 
     <div class="result" id="output">入力すると結果が表示されます。</div>
   </div>
 
   <script>
-    const inputs = document.querySelectorAll("input, select");
+    const conversionType = document.getElementById("conversionType");
+    const itemInputs = document.querySelectorAll("#itemConversion input, #stackSizeSelect");
+    const blockInputs = document.querySelectorAll("#blockConversion input");
     const output = document.getElementById("output");
-    const stackSizeSelect = document.getElementById("stackSizeSelect");
 
-    function calculate() {
-      const stackSize = parseInt(stackSizeSelect.value, 10);
-      const chestCap = 54 * stackSize;
-      const shulkerCap = 27 * stackSize;
-
-      let totalItems = 0;
-
-      const chest = Number(document.getElementById("chest").value);
-      const shulker = Number(document.getElementById("shulker").value);
-      const stack = Number(document.getElementById("stack").value);
-      const item = Number(document.getElementById("item").value);
-
-      if (!isNaN(chest)) totalItems += chest * chestCap;
-      if (!isNaN(shulker)) totalItems += shulker * shulkerCap;
-      if (!isNaN(stack)) totalItems += stack * stackSize;
-      if (!isNaN(item)) totalItems += item;
-
-      const chestOut = Math.floor(totalItems / chestCap);
-      const shulkerOut = Math.floor((totalItems % chestCap) / shulkerCap);
-      const stackOut = Math.floor((totalItems % shulkerCap) / stackSize);
-      const itemOut = totalItems % stackSize;
-
-      output.innerHTML = `
-        <strong>換算結果（スタック上限: ${stackSize}）:</strong><br>
-        🧱 ラージチェスト: ${chestOut} 個<br>
-        📦 シュルカーボックス: ${shulkerOut} 個<br>
-        📚 スタック: ${stackOut} スタック<br>
-        🔹 残りアイテム: ${itemOut} 個<br>
-        <br>
-        （合計: ${totalItems} 個）
-      `;
+    function updateVisibility() {
+      const type = conversionType.value;
+      document.getElementById("itemConversion").style.display = (type === "item") ? "block" : "none";
+      document.getElementById("blockConversion").style.display = (type === "block") ? "block" : "none";
+      calculate();
     }
 
-    inputs.forEach(input => {
-      input.addEventListener("input", calculate);
-    });
+    function calculate() {
+      const type = conversionType.value;
+      output.innerHTML = "";
+
+      if (type === "item") {
+        const stackSize = parseInt(document.getElementById("stackSizeSelect").value, 10);
+        const chestCap = 54 * stackSize;
+        const shulkerCap = 27 * stackSize;
+
+        let totalItems = 0;
+
+        const chest = Number(document.getElementById("chest").value);
+        const shulker = Number(document.getElementById("shulker").value);
+        const stack = Number(document.getElementById("stack").value);
+        const item = Number(document.getElementById("item").value);
+
+        if (!isNaN(chest)) totalItems += chest * chestCap;
+        if (!isNaN(shulker)) totalItems += shulker * shulkerCap;
+        if (!isNaN(stack)) totalItems += stack * stackSize;
+        if (!isNaN(item)) totalItems += item;
+
+        const chestOut = Math.floor(totalItems / chestCap);
+        const shulkerOut = Math.floor((totalItems % chestCap) / shulkerCap);
+        const stackOut = Math.floor((totalItems % shulkerCap) / stackSize);
+        const itemOut = totalItems % stackSize;
+
+        output.innerHTML = `
+          <strong>換算結果（スタック上限: ${stackSize}）:</strong><br>
+          🧱 ラージチェスト: ${chestOut} 個<br>
+          📦 シュルカーボックス: ${shulkerOut} 個<br>
+          📚 スタック: ${stackOut} スタック<br>
+          🔹 残りアイテム: ${itemOut} 個<br>
+          <br>
+          （合計: ${totalItems} 個）
+        `;
+      } else {
+        const ingot = Number(document.getElementById("ingotInput").value);
+        const block = Number(document.getElementById("blockInput").value);
+
+        let totalIngots = 0;
+        if (!isNaN(ingot)) totalIngots += ingot;
+        if (!isNaN(block)) totalIngots += block * 9;
+
+        const blockOut = Math.floor(totalIngots / 9);
+        const ingotOut = totalIngots % 9;
+
+        output.innerHTML = `
+          <strong>換算結果（9個でブロック）:</strong><br>
+          🧊 ブロック: ${blockOut} 個<br>
+          🪙 インゴット: ${ingotOut} 個<br>
+          <br>
+          （合計インゴット換算: ${totalIngots} 個）
+        `;
+      }
+    }
+
+    conversionType.addEventListener("change", updateVisibility);
+    itemInputs.forEach(input => input.addEventListener("input", calculate));
+    blockInputs.forEach(input => input.addEventListener("input", calculate));
   </script>
 </body>
 </html>
