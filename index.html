@@ -46,6 +46,19 @@
       border: 1px solid #ccc;
       border-radius: 5px;
     }
+    #copyButton {
+      width: 100%;
+      padding: 0.7em;
+      font-size: 1em;
+      margin-top: 0.5em;
+      border: none;
+      border-radius: 5px;
+      background-color: #4CAF50;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      display: none; /* Initially hidden */
+    }
     .toggle-stack {
       margin-top: 1em;
       text-align: center;
@@ -99,24 +112,31 @@
     </div>
 
     <div class="result" id="output">入力すると結果が表示されます。</div>
+    <button id="copyButton">結果をコピー</button>
   </div>
 
   <script>
     const conversionType = document.getElementById("conversionType");
     const itemInputs = document.querySelectorAll("#itemConversion input, #stackSizeSelect");
     const blockInputs = document.querySelectorAll("#blockConversion input");
+    const allNumberInputs = document.querySelectorAll('input[type="number"]');
     const output = document.getElementById("output");
+    const copyButton = document.getElementById("copyButton");
 
     function updateVisibility() {
       const type = conversionType.value;
       document.getElementById("itemConversion").style.display = (type === "item") ? "block" : "none";
       document.getElementById("blockConversion").style.display = (type === "block") ? "block" : "none";
+      // Reset inputs when changing type
+      allNumberInputs.forEach(input => input.value = '');
       calculate();
     }
 
     function calculate() {
       const type = conversionType.value;
-      output.innerHTML = "";
+      let hasResult = false;
+      let resultHTML = "";
+      let resultText = "";
 
       if (type === "item") {
         const stackSize = parseInt(document.getElementById("stackSizeSelect").value, 10);
@@ -135,20 +155,24 @@
         if (!isNaN(stack)) totalItems += stack * stackSize;
         if (!isNaN(item)) totalItems += item;
 
-        const chestOut = Math.floor(totalItems / chestCap);
-        const shulkerOut = Math.floor((totalItems % chestCap) / shulkerCap);
-        const stackOut = Math.floor((totalItems % shulkerCap) / stackSize);
-        const itemOut = totalItems % stackSize;
+        if (totalItems > 0) {
+          const chestOut = Math.floor(totalItems / chestCap);
+          const shulkerOut = Math.floor((totalItems % chestCap) / shulkerCap);
+          const stackOut = Math.floor((totalItems % shulkerCap) / stackSize);
+          const itemOut = totalItems % stackSize;
 
-        output.innerHTML = `
-          <strong>換算結果（スタック上限: ${stackSize}）:</strong><br>
-          🧱 ラージチェスト: ${chestOut} 個<br>
-          📦 シュルカーボックス: ${shulkerOut} 個<br>
-          📚 スタック: ${stackOut} スタック<br>
-          🔹 残りアイテム: ${itemOut} 個<br>
-          <br>
-          （合計: ${totalItems} 個）
-        `;
+          resultHTML = `
+            <strong>換算結果（スタック上限: ${stackSize}）:</strong><br>
+            🧱 ラージチェスト: ${chestOut} 個<br>
+            📦 シュルカーボックス: ${shulkerOut} 個<br>
+            📚 スタック: ${stackOut} スタック<br>
+            🔹 残りアイテム: ${itemOut} 個<br>
+            <br>
+            （合計: ${totalItems} 個）
+          `;
+          resultText = `換算結果（スタック上限: ${stackSize}）:\nラージチェスト: ${chestOut} 個\nシュルカーボックス: ${shulkerOut} 個\nスタック: ${stackOut} スタック\n残りアイテム: ${itemOut} 個\n（合計: ${totalItems} 個）`;
+          hasResult = true;
+        }
       } else {
         const ingot = Number(document.getElementById("ingotInput").value);
         const block = Number(document.getElementById("blockInput").value);
@@ -156,23 +180,50 @@
         let totalIngots = 0;
         if (!isNaN(ingot)) totalIngots += ingot;
         if (!isNaN(block)) totalIngots += block * 9;
+        
+        if (totalIngots > 0) {
+          const blockOut = Math.floor(totalIngots / 9);
+          const ingotOut = totalIngots % 9;
 
-        const blockOut = Math.floor(totalIngots / 9);
-        const ingotOut = totalIngots % 9;
+          resultHTML = `
+            <strong>換算結果（9個でブロック）:</strong><br>
+            🧊 ブロック: ${blockOut} 個<br>
+            🪙 インゴット: ${ingotOut} 個<br>
+            <br>
+            （合計インゴット換算: ${totalIngots} 個）
+          `;
+          resultText = `換算結果（9個でブロック）:\nブロック: ${blockOut} 個\nインゴット: ${ingotOut} 個\n（合計インゴット換算: ${totalIngots} 個）`;
+          hasResult = true;
+        }
+      }
 
-        output.innerHTML = `
-          <strong>換算結果（9個でブロック）:</strong><br>
-          🧊 ブロック: ${blockOut} 個<br>
-          🪙 インゴット: ${ingotOut} 個<br>
-          <br>
-          （合計インゴット換算: ${totalIngots} 個）
-        `;
+      if (hasResult) {
+        output.innerHTML = resultHTML;
+        copyButton.style.display = "block";
+        copyButton.dataset.copyText = resultText;
+      } else {
+        output.innerHTML = "入力すると結果が表示されます。";
+        copyButton.style.display = "none";
+        copyButton.dataset.copyText = "";
       }
     }
 
     conversionType.addEventListener("change", updateVisibility);
     itemInputs.forEach(input => input.addEventListener("input", calculate));
     blockInputs.forEach(input => input.addEventListener("input", calculate));
+
+    copyButton.addEventListener("click", () => {
+      const textToCopy = copyButton.dataset.copyText;
+      if (!textToCopy) return;
+
+      navigator.clipboard.writeText(textToCopy).then(() => {
+        const originalText = copyButton.textContent;
+        copyButton.textContent = "コピーしました！";
+        setTimeout(() => {
+          copyButton.textContent = originalText;
+        }, 1500);
+      }).catch(err => console.error("コピーに失敗しました: ", err));
+    });
   </script>
 </body>
 </html>
