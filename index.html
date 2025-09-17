@@ -123,6 +123,10 @@
     const output = document.getElementById("output");
     const copyButton = document.getElementById("copyButton");
 
+    // 「非常に多い数」の基準値
+    const MAX_ITEMS = 10000000;  // 1千万個以上はエラー
+    const MAX_INGOTS = 10000000; // 1千万個以上はエラー
+
     function updateVisibility() {
       const type = conversionType.value;
       document.getElementById("itemConversion").style.display = (type === "item") ? "block" : "none";
@@ -137,6 +141,7 @@
       let hasResult = false;
       let resultHTML = "";
       let resultText = "";
+      let isError = false;
 
       if (type === "item") {
         const stackSize = parseInt(document.getElementById("stackSizeSelect").value, 10);
@@ -156,22 +161,29 @@
         if (!isNaN(item)) totalItems += item;
 
         if (totalItems > 0) {
-          const chestOut = Math.floor(totalItems / chestCap);
-          const shulkerOut = Math.floor((totalItems % chestCap) / shulkerCap);
-          const stackOut = Math.floor((totalItems % shulkerCap) / stackSize);
-          const itemOut = totalItems % stackSize;
+          // エラー表示
+          if (totalItems >= MAX_ITEMS) {
+            resultHTML = `<span style="color:red;">⚠️値が大きすぎます（${totalItems}個）。もう少し小さい値を入力してください。</span>`;
+            resultText = "";
+            isError = true;
+          } else {
+            const chestOut = Math.floor(totalItems / chestCap);
+            const shulkerOut = Math.floor((totalItems % chestCap) / shulkerCap);
+            const stackOut = Math.floor((totalItems % shulkerCap) / stackSize);
+            const itemOut = totalItems % stackSize;
 
-          resultHTML = `
-            <strong>換算結果（スタック上限: ${stackSize}）:</strong><br>
-            🧱 ラージチェスト: ${chestOut} 個<br>
-            📦 シュルカーボックス: ${shulkerOut} 個<br>
-            📚 スタック: ${stackOut} スタック<br>
-            🔹 残りアイテム: ${itemOut} 個<br>
-            <br>
-            （合計: ${totalItems} 個）
-          `;
-          resultText = `換算結果（スタック上限: ${stackSize}）:\nラージチェスト: ${chestOut} 個\nシュルカーボックス: ${shulkerOut} 個\nスタック: ${stackOut} スタック\n残りアイテム: ${itemOut} 個\n（合計: ${totalItems} 個）`;
-          hasResult = true;
+            resultHTML = `
+              <strong>換算結果（スタック上限: ${stackSize}）:</strong><br>
+              🧱 ラージチェスト: ${chestOut} 個<br>
+              📦 シュルカーボックス: ${shulkerOut} 個<br>
+              📚 スタック: ${stackOut} スタック<br>
+              🔹 残りアイテム: ${itemOut} 個<br>
+              <br>
+              （合計: ${totalItems} 個）
+            `;
+            resultText = `換算結果（スタック上限: ${stackSize}）:\nラージチェスト: ${chestOut} 個\nシュルカーボックス: ${shulkerOut} 個\nスタック: ${stackOut} スタック\n残りアイテム: ${itemOut} 個\n\n（合計: ${totalItems} 個）`;
+            hasResult = true;
+          }
         }
       } else {
         const ingot = Number(document.getElementById("ingotInput").value);
@@ -180,24 +192,35 @@
         let totalIngots = 0;
         if (!isNaN(ingot)) totalIngots += ingot;
         if (!isNaN(block)) totalIngots += block * 9;
-        
-        if (totalIngots > 0) {
-          const blockOut = Math.floor(totalIngots / 9);
-          const ingotOut = totalIngots % 9;
 
-          resultHTML = `
-            <strong>換算結果（9個でブロック）:</strong><br>
-            🧊 ブロック: ${blockOut} 個<br>
-            🪙 インゴット: ${ingotOut} 個<br>
-            <br>
-            （合計インゴット換算: ${totalIngots} 個）
-          `;
-          resultText = `換算結果（9個でブロック）:\nブロック: ${blockOut} 個\nインゴット: ${ingotOut} 個\n（合計インゴット換算: ${totalIngots} 個）`;
-          hasResult = true;
+        if (totalIngots > 0) {
+          if (totalIngots >= MAX_INGOTS) {
+            resultHTML = `<span style="color:red;">⚠️値が大きすぎます（${totalIngots}個）。もう少し小さい値を入力してください。</span>`;
+            resultText = "";
+            isError = true;
+          } else {
+            const blockOut = Math.floor(totalIngots / 9);
+            const ingotOut = totalIngots % 9;
+
+            resultHTML = `
+              <strong>換算結果（9個でブロック）:</strong><br>
+              🧊 ブロック: ${blockOut} 個<br>
+              🪙 インゴット: ${ingotOut} 個<br>
+              <br>
+              （合計インゴット換算: ${totalIngots} 個）
+            `;
+            resultText = `換算結果（9個でブロック）:\nブロック: ${blockOut} 個\nインゴット: ${ingotOut} 個\n（合計インゴット換算: ${totalIngots} 個）`;
+            hasResult = true;
+          }
         }
       }
 
-      if (hasResult) {
+      // 出力部分
+      if (isError) {
+        output.innerHTML = resultHTML;
+        copyButton.style.display = "none";
+        copyButton.dataset.copyText = "";
+      } else if (hasResult) {
         output.innerHTML = resultHTML;
         copyButton.style.display = "block";
         copyButton.dataset.copyText = resultText;
@@ -224,6 +247,10 @@
         }, 1500);
       }).catch(err => console.error("コピーに失敗しました: ", err));
     });
+
+    // 初期表示
+    window.addEventListener("DOMContentLoaded", calculate);
+
   </script>
 </body>
 </html>
