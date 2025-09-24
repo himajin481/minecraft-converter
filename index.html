@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>マイクラ単位変換ツール</title>
+  <title>マイクラ単位変換ツール & 電卓</title>
   <style>
     * { box-sizing: border-box; }
     body {
@@ -18,9 +18,14 @@
       margin-bottom: 1em;
       text-align: center;
     }
+    .flex-container {
+      display: flex;
+      gap: 1em;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
     .container {
-      max-width: 500px;
-      margin: auto;
+      flex: 1 1 300px;
       background: #ffffff;
       padding: 1em;
       border-radius: 10px;
@@ -31,7 +36,7 @@
       margin-top: 1em;
       font-weight: bold;
     }
-    input[type="number"], select {
+    input[type="number"], select, input[type="text"] {
       width: 100%;
       padding: 0.5em;
       font-size: 1em;
@@ -39,110 +44,163 @@
       border: 1px solid #ccc;
       border-radius: 5px;
     }
+    textarea {
+      width: 100%;
+      padding: 0.5em;
+      font-size: 0.9em;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      min-height: 100px;
+      resize: vertical;
+    }
     .result {
       margin-top: 1.5em;
       background: #f9f9f9;
       padding: 1em;
       border: 1px solid #ccc;
       border-radius: 5px;
+      min-height: 50px;
+      position: relative; /* For copy button positioning */
+    }
+    .calc-buttons {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.5em;
+      margin-top: 0.5em;
     }
     #copyButton {
-      width: 100%;
-      padding: 0.7em;
+      position: absolute;
+      top: 0.5em;
+      right: 0.5em;
+      padding: 0.3em 0.6em;
+      font-size: 0.9em;
+      background: #d0e0f0;
+      border: 1px solid #b0c0d0;
+    }
+    #copyButton:hover {
+      background: #b0c0d0;
+    }
+    button {
+      padding: 0.5em;
       font-size: 1em;
-      margin-top: 0.5em;
-      border: none;
+      border: 1px solid #ccc;
       border-radius: 5px;
-      background-color: #4CAF50;
-      color: white;
       cursor: pointer;
-      transition: background-color 0.3s;
-      display: none; /* Initially hidden */
+      background: #e0f0ff;
     }
-    .toggle-stack {
-      margin-top: 1em;
-      text-align: center;
-    }
-    @media (max-width: 500px) {
-      body { padding: 0.5em; }
-      .container { padding: 1em 0.8em; }
+    button:hover { background: #c0e0ff; }
+    @media (max-width: 700px) {
+      .flex-container { flex-direction: column; }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>マイクラ単位変換ツール</h1>
+  <h1>マイクラ単位変換ツール & 電卓</h1>
+  <div class="flex-container">
+    <!-- マイクラ単位変換 -->
+    <div class="container">
+      <h2>マイクラ単位変換</h2>
+      <label>換算タイプ:</label>
+      <select id="conversionType">
+        <option value="item">スタック・チェスト換算</option>
+        <option value="block">ブロック⇔インゴット換算</option>
+      </select>
 
-    <label>換算タイプ:</label>
-    <select id="conversionType">
-      <option value="item">スタック・チェスト換算</option>
-      <option value="block">ブロック⇔インゴット換算</option>
-    </select>
+      <div id="itemConversion">
+        <div class="toggle-stack">
+          <label>
+            スタック最大数:
+            <select id="stackSizeSelect">
+              <option value="64">64（通常）</option>
+              <option value="16">16（バケツ・看板など）</option>
+            </select>
+          </label>
+        </div>
 
-    <div id="itemConversion">
-      <div class="toggle-stack">
-        <label>
-          スタック最大数:
-          <select id="stackSizeSelect">
-            <option value="64">64（通常）</option>
-            <option value="16">16（バケツ・看板など）</option>
-          </select>
-        </label>
+        <label for="chest">ラージチェスト</label>
+        <input type="number" id="chest" placeholder="例: 1" />
+
+        <label for="shulker">シュルカーボックス</label>
+        <input type="number" id="shulker" placeholder="例: 2" />
+
+        <label for="stack">スタック</label>
+        <input type="number" id="stack" placeholder="例: 10" />
+
+        <label for="item">個数</label>
+        <input type="number" id="item" placeholder="例: 500" />
       </div>
 
-      <label for="chest">ラージチェスト</label>
-      <input type="number" id="chest" placeholder="例: 1" />
+      <div id="blockConversion" style="display:none;">
+        <label for="ingotInput">インゴット</label>
+        <input type="number" id="ingotInput" placeholder="例: 20" />
 
-      <label for="shulker">シュルカーボックス</label>
-      <input type="number" id="shulker" placeholder="例: 2" />
+        <label for="blockInput">ブロック</label>
+        <input type="number" id="blockInput" placeholder="例: 2" />
+      </div>
 
-      <label for="stack">スタック</label>
-      <input type="number" id="stack" placeholder="例: 10" />
-
-      <label for="item">個数</label>
-      <input type="number" id="item" placeholder="例: 500" />
+      <div class="result" id="output">
+        入力すると結果が表示されます。
+        <button id="copyButton" title="結果をコピー" style="display: none;">コピー</button>
+      </div>
     </div>
 
-    <div id="blockConversion" style="display:none;">
-      <label for="ingotInput">インゴット</label>
-      <input type="number" id="ingotInput" placeholder="例: 20" />
+    <!-- 電卓 -->
+    <div class="container">
+      <h2>電卓</h2>
+      <input type="text" id="calcDisplay" placeholder="0" readonly />
+      <div class="calc-buttons">
+        <button onclick="clearCalc()" style="background:#ffcccc;">C</button>
+        <button onclick="appendCalc('(')">(</button>
+        <button onclick="appendCalc(')')">)</button>
+        <button onclick="appendCalc('/')" class="operator">÷</button>
 
-      <label for="blockInput">ブロック</label>
-      <input type="number" id="blockInput" placeholder="例: 2" />
+        <button onclick="appendCalc('7')">7</button>
+        <button onclick="appendCalc('8')">8</button>
+        <button onclick="appendCalc('9')">9</button>
+        <button onclick="appendCalc('*')" class="operator">×</button>
+
+        <button onclick="appendCalc('4')">4</button>
+        <button onclick="appendCalc('5')">5</button>
+        <button onclick="appendCalc('6')">6</button>
+        <button onclick="appendCalc('-')" class="operator">−</button>
+
+        <button onclick="appendCalc('1')">1</button>
+        <button onclick="appendCalc('2')">2</button>
+        <button onclick="appendCalc('3')">3</button>
+        <button onclick="appendCalc('+')" class="operator">+</button>
+
+        <button onclick="appendCalc('0')">0</button>
+        <button onclick="appendCalc('.')">.</button>
+        <button onclick="backspaceCalc()" style="background:#ffd9b3;">⌫</button>
+        <button onclick="calculateResult()" style="background:#cceeff;">=</button>
+      </div>
+
+      <label for="calcNotes" style="margin-top: 1.5em;">メモ</label>
+      <textarea id="calcNotes" placeholder="計算のメモなどにご利用ください。"></textarea>
     </div>
-
-    <div class="result" id="output">入力すると結果が表示されます。</div>
-    <button id="copyButton">結果をコピー</button>
   </div>
 
   <script>
+    // マイクラ単位変換
     const conversionType = document.getElementById("conversionType");
     const itemInputs = document.querySelectorAll("#itemConversion input, #stackSizeSelect");
     const blockInputs = document.querySelectorAll("#blockConversion input");
-    const allNumberInputs = document.querySelectorAll('input[type="number"]');
     const output = document.getElementById("output");
     const copyButton = document.getElementById("copyButton");
-
-    // 「非常に多い数」の基準値
-    const MAX_ITEMS = 10000000;  // 1千万個以上はエラー
-    const MAX_INGOTS = 10000000; // 1千万個以上はエラー
 
     function updateVisibility() {
       const type = conversionType.value;
       document.getElementById("itemConversion").style.display = (type === "item") ? "block" : "none";
       document.getElementById("blockConversion").style.display = (type === "block") ? "block" : "none";
-      // Reset inputs when changing type
-      allNumberInputs.forEach(input => input.value = '');
+      copyButton.style.display = "none";
       calculate();
     }
 
     function calculate() {
       const type = conversionType.value;
-      let hasResult = false;
-      let resultHTML = "";
-      let resultText = "";
-      let isError = false;
+      output.innerHTML = "";
 
+      let hasInput = false;
       if (type === "item") {
         const stackSize = parseInt(document.getElementById("stackSizeSelect").value, 10);
         const chestCap = 54 * stackSize;
@@ -160,31 +218,22 @@
         if (!isNaN(stack)) totalItems += stack * stackSize;
         if (!isNaN(item)) totalItems += item;
 
-        if (totalItems > 0) {
-          // エラー表示
-          if (totalItems >= MAX_ITEMS) {
-            resultHTML = `<span style="color:red;">⚠️値が大きすぎます（${totalItems}個）。もう少し小さい値を入力してください。</span>`;
-            resultText = "";
-            isError = true;
-          } else {
-            const chestOut = Math.floor(totalItems / chestCap);
-            const shulkerOut = Math.floor((totalItems % chestCap) / shulkerCap);
-            const stackOut = Math.floor((totalItems % shulkerCap) / stackSize);
-            const itemOut = totalItems % stackSize;
+        hasInput = chest || shulker || stack || item;
 
-            resultHTML = `
-              <strong>換算結果（スタック上限: ${stackSize}）:</strong><br>
-              🧱 ラージチェスト: ${chestOut} 個<br>
-              📦 シュルカーボックス: ${shulkerOut} 個<br>
-              📚 スタック: ${stackOut} スタック<br>
-              🔹 残りアイテム: ${itemOut} 個<br>
-              <br>
-              （合計: ${totalItems} 個）
-            `;
-            resultText = `換算結果（スタック上限: ${stackSize}）:\nラージチェスト: ${chestOut} 個\nシュルカーボックス: ${shulkerOut} 個\nスタック: ${stackOut} スタック\n残りアイテム: ${itemOut} 個\n\n（合計: ${totalItems} 個）`;
-            hasResult = true;
-          }
-        }
+        const chestOut = Math.floor(totalItems / chestCap);
+        const shulkerOut = Math.floor((totalItems % chestCap) / shulkerCap);
+        const stackOut = Math.floor((totalItems % shulkerCap) / stackSize);
+        const itemOut = totalItems % stackSize;
+
+        output.innerHTML = `
+          <strong>換算結果（スタック上限: ${stackSize}）:</strong><br>
+          🧱 ラージチェスト: ${chestOut} 個<br>
+          📦 シュルカーボックス: ${shulkerOut} 個<br>
+          📚 スタック: ${stackOut} スタック<br>
+          🔹 残りアイテム: ${itemOut} 個<br>
+          <br>
+          （合計: ${totalItems} 個）
+        `;
       } else {
         const ingot = Number(document.getElementById("ingotInput").value);
         const block = Number(document.getElementById("blockInput").value);
@@ -193,64 +242,91 @@
         if (!isNaN(ingot)) totalIngots += ingot;
         if (!isNaN(block)) totalIngots += block * 9;
 
-        if (totalIngots > 0) {
-          if (totalIngots >= MAX_INGOTS) {
-            resultHTML = `<span style="color:red;">⚠️値が大きすぎます（${totalIngots}個）。もう少し小さい値を入力してください。</span>`;
-            resultText = "";
-            isError = true;
-          } else {
-            const blockOut = Math.floor(totalIngots / 9);
-            const ingotOut = totalIngots % 9;
+        hasInput = ingot || block;
 
-            resultHTML = `
-              <strong>換算結果（9個でブロック）:</strong><br>
-              🧊 ブロック: ${blockOut} 個<br>
-              🪙 インゴット: ${ingotOut} 個<br>
-              <br>
-              （合計インゴット換算: ${totalIngots} 個）
-            `;
-            resultText = `換算結果（9個でブロック）:\nブロック: ${blockOut} 個\nインゴット: ${ingotOut} 個\n（合計インゴット換算: ${totalIngots} 個）`;
-            hasResult = true;
-          }
-        }
+        const blockOut = Math.floor(totalIngots / 9);
+        const ingotOut = totalIngots % 9;
+
+        output.innerHTML = `
+          <strong>換算結果（9個でブロック）:</strong><br>
+          🧊 ブロック: ${blockOut} 個<br>
+          🪙 インゴット: ${ingotOut} 個<br>
+          <br>
+          （合計インゴット換算: ${totalIngots} 個）
+        `;
       }
 
-      // 出力部分
-      if (isError) {
-        output.innerHTML = resultHTML;
-        copyButton.style.display = "none";
-        copyButton.dataset.copyText = "";
-      } else if (hasResult) {
-        output.innerHTML = resultHTML;
+      // 結果がある場合のみコピーボタンを表示
+      if (hasInput) {
         copyButton.style.display = "block";
-        copyButton.dataset.copyText = resultText;
       } else {
-        output.innerHTML = "入力すると結果が表示されます。";
+        output.innerHTML = '入力すると結果が表示されます。';
         copyButton.style.display = "none";
-        copyButton.dataset.copyText = "";
       }
+      // ボタンを再追加
+      output.appendChild(copyButton);
     }
 
     conversionType.addEventListener("change", updateVisibility);
     itemInputs.forEach(input => input.addEventListener("input", calculate));
     blockInputs.forEach(input => input.addEventListener("input", calculate));
 
+    // コピーボタンの処理
     copyButton.addEventListener("click", () => {
-      const textToCopy = copyButton.dataset.copyText;
-      if (!textToCopy) return;
-
+      const textToCopy = output.innerText.replace(/\s*コピー\s*$/, '').trim(); // ボタンのテキストを除外
       navigator.clipboard.writeText(textToCopy).then(() => {
-        const originalText = copyButton.textContent;
-        copyButton.textContent = "コピーしました！";
-        setTimeout(() => {
-          copyButton.textContent = originalText;
-        }, 1500);
-      }).catch(err => console.error("コピーに失敗しました: ", err));
+        const originalText = copyButton.innerText;
+        copyButton.innerText = "コピー完了!";
+        setTimeout(() => { copyButton.innerText = originalText; }, 1500);
+      }).catch(err => {
+        console.error('コピーに失敗しました: ', err);
+      });
     });
 
-    // 初期表示
-    window.addEventListener("DOMContentLoaded", calculate);
+    // 電卓
+    const calcDisplay = document.getElementById("calcDisplay");
+    let calcValue = "";
 
+    function appendCalc(value) {
+      calcValue += value;
+      calcDisplay.value = calcValue;
+    }
+
+    function clearCalc() {
+      calcValue = "";
+      calcDisplay.value = "0";
+    }
+
+    function backspaceCalc() {
+      calcValue = calcValue.slice(0, -1);
+      if (calcValue === "") {
+        calcDisplay.value = "0";
+      } else {
+        calcDisplay.value = calcValue;
+      }
+    }
+
+    function calculateResult() {
+      try {
+        // ユーザーが入力した '×' と '÷' をJavaScriptが解釈できる '*' と '/' に置換
+        let expression = calcValue.replace(/×/g, '*').replace(/÷/g, '/');
+
+        // 安全性のため、許可する文字以外は削除
+        expression = expression.replace(/[^0-9\.\+\-\*\/\(\)\s]/g, '');
+
+        // eslint-disable-next-line no-eval
+        const result = eval(expression);
+        if (isNaN(result) || !isFinite(result)) {
+          throw new Error("Invalid calculation");
+        }
+        calcValue = result.toString();
+        calcDisplay.value = calcValue;
+      } catch (e) {
+        calcDisplay.value = "エラー";
+        calcValue = "";
+      }
+    }
   </script>
 </body>
 </html>
+
