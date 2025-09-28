@@ -31,11 +31,6 @@
       border-radius: 10px;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     }
-    label {
-      display: block;
-      margin-top: 1em;
-      font-weight: bold;
-    }
     input[type="number"], select, input[type="text"] {
       width: 100%;
       padding: 0.5em;
@@ -43,6 +38,21 @@
       margin-top: 0.3em;
       border: 1px solid #ccc;
       border-radius: 5px;
+    }
+    .input-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5em;
+      margin-top: 0.8em;
+    }
+    .input-row label {
+      flex-shrink: 0; /* ラベルが縮まないようにする */
+      width: 120px; /* ラベルの幅を固定 */
+      font-weight: bold;
+      text-align: right;
+    }
+    .input-row input, .input-row select {
+      flex-grow: 1; /* 入力欄が残りのスペースを埋める */
     }
     textarea {
       width: 100%;
@@ -100,42 +110,49 @@
     <!-- マイクラ単位変換 -->
     <div class="container">
       <h2>マイクラ単位変換</h2>
-      <label>換算タイプ:</label>
-      <select id="conversionType">
-        <option value="item">スタック・チェスト換算</option>
-        <option value="block">ブロック⇔インゴット換算</option>
-      </select>
+      <div class="input-row">
+        <label for="conversionType">換算タイプ</label>
+        <select id="conversionType">
+          <option value="item">スタック・チェスト換算</option>
+          <option value="block">ブロック⇔インゴット換算</option>
+        </select>
+      </div>
 
       <div id="itemConversion">
-        <div class="toggle-stack">
-          <label>
-            スタック最大数:
-            <select id="stackSizeSelect">
-              <option value="64">64（通常）</option>
-              <option value="16">16（バケツ・看板など）</option>
-            </select>
-          </label>
+        <div class="input-row">
+          <label for="stackSizeSelect">スタック最大数</label>
+          <select id="stackSizeSelect">
+            <option value="64">64（通常）</option>
+            <option value="16">16（バケツ・看板など）</option>
+          </select>
         </div>
-
-        <label for="chest">ラージチェスト</label>
-        <input type="number" id="chest" placeholder="例: 1" />
-
-        <label for="shulker">シュルカーボックス</label>
-        <input type="number" id="shulker" placeholder="例: 2" />
-
-        <label for="stack">スタック</label>
-        <input type="number" id="stack" placeholder="例: 10" />
-
-        <label for="item">個数</label>
-        <input type="number" id="item" placeholder="例: 500" />
+        <div class="input-row">
+          <label for="chest">ラージチェスト</label>
+          <input type="number" id="chest" placeholder="例: 1" />
+        </div>
+        <div class="input-row">
+          <label for="shulker">シュルカーボックス</label>
+          <input type="number" id="shulker" placeholder="例: 2" />
+        </div>
+        <div class="input-row">
+          <label for="stack">スタック</label>
+          <input type="number" id="stack" placeholder="例: 10" />
+        </div>
+        <div class="input-row">
+          <label for="item">個数</label>
+          <input type="number" id="item" placeholder="例: 500" />
+        </div>
       </div>
 
       <div id="blockConversion" style="display:none;">
-        <label for="ingotInput">インゴット</label>
-        <input type="number" id="ingotInput" placeholder="例: 20" />
-
-        <label for="blockInput">ブロック</label>
-        <input type="number" id="blockInput" placeholder="例: 2" />
+        <div class="input-row">
+          <label for="ingotInput">インゴット</label>
+          <input type="number" id="ingotInput" placeholder="例: 20" />
+        </div>
+        <div class="input-row">
+          <label for="blockInput">ブロック</label>
+          <input type="number" id="blockInput" placeholder="例: 2" />
+        </div>
       </div>
 
       <div class="result" id="output">
@@ -329,4 +346,6 @@
   </script>
 </body>
 </html>
+
+
 
